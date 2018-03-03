@@ -1,90 +1,131 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"golang.org/x/net/html"
+	"io"
+	"io/ioutil"
+	"math"
 	"os"
 	"strconv"
-	"io"
-	"math"
+
+	"golang.org/x/net/html"
 )
 
 type class struct {
-	name    string
-	teacher string
-	id      string
-	room    string
-	year    string
-	width   int
+	Name    string
+	Teacher string
+	Id      string
+	Room    string
+	Year    string
+	Width   int
 }
 
 func main() {
 	file, err := os.Open("shitty.html")
 	parser(file)
-	if (err!=nil){
+	if err != nil {
 		fmt.Println(err.Error)
 	}
 }
 
 func parser(scheduleHtml io.ReadCloser) {
-	var schedule [4][11][]class
+	var schedule [10][5][]class
 	var (
-		parse          func(*html.Node)
-		period         int
-		day            int
-		cWidth, lWidth int
-		err error
+		parse                  func(*html.Node)
+		period                 int
+		day                    int
+		cWidth, lWidth, tWidth int
+		err                    error
 	)
 
 	period = 0
 	body, err := html.Parse(scheduleHtml)
-	if (err!=nil){
+	if err != nil {
 		fmt.Println(err.Error)
 	}
 	parse = func(node *html.Node) {
 
 		if node.Type == html.ElementNode {
+			//fmt.Println(node.Data)
 			for _, a := range node.Attr {
+
 				if a.Key == "colspan" {
-					fmt.Println("correct key")
+					//fmt.Println("correct key")
+					var stuff class
+					lWidth = 0
 					cWidth, err = strconv.Atoi(a.Val)
-					tWidth := cWidth + lWidth
+					for _, c := range schedule[period][day] {
+						lWidth += c.Width
+					}
+					tWidth = cWidth + lWidth
+					fmt.Printf("%d-%d\n", day, period)
+					fmt.Println(tWidth)
 					if period == 0 {
 						if err != nil {
 							fmt.Println("couldnt parse")
 						}
-						var stuff = class{
-							name:    "day",
-							teacher: "none",
-							id:      "none",
-							room:    "none",
-							year:    "none",
-							width:   cWidth,
+						stuff = class{
+							Name:    "day",
+							Teacher: "none",
+							Id:      "none",
+							Room:    "none",
+							Year:    "none",
+							Width:   cWidth,
 						}
 						fmt.Println(day)
 						fmt.Println(period)
-						schedule[day][period] = append(schedule[day][period],stuff)
 					} else {
-						html.Render(os.Stdout, node.FirstChild.FirstChild)
-						var stuff = class{
-							name:    node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.Data,
-							teacher: node.FirstChild.FirstChild.FirstChild.NextSibling.FirstChild.FirstChild.Data,
-							id:      "none",
-							room:    node.FirstChild.FirstChild.LastChild.FirstChild.FirstChild.Data,
-							year:    "none",
-							width:   cWidth,
+
+						fmt.Println("--------------------------parsing class--------------------------")
+						if lWidth >= 12 && schedule[0][0][0].Width/lWidth >= 1 {
+							day++
+							if day == 5 {
+								period++
+								day = 0
+							}
 						}
-						schedule[day][period] = append(schedule[day][period],stuff)
+						if node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild == nil {
+							fmt.Println("empty stuff")
+						} else {
+							//html.Render(os.Stdout, node.FirstChild.FirstChild.LastChild.LastChild.PrevSibling)
+							//fmt.Println(node.FirstChild.FirstChild.LastChild.Data)
+
+							stuff = class{
+								Name:    node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.NextSibling.FirstChild.Data,
+								Teacher: node.FirstChild.FirstChild.LastChild.FirstChild.FirstChild.FirstChild.Data,
+								Id:      "none",
+								Room:    node.FirstChild.FirstChild.LastChild.LastChild.PrevSibling.FirstChild.FirstChild.Data,
+								Year:    "none",
+								Width:   cWidth,
+							}
+							if stuff.Name == "strike" {
+								stuff.Name = node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.NextSibling.FirstChild.FirstChild.Data
+								stuff.Teacher = node.FirstChild.FirstChild.LastChild.FirstChild.FirstChild.FirstChild.NextSibling.FirstChild.Data
+							}
+
+						}
 					}
-					if math.Mod(float64(tWidth), float64(schedule[0][0][0].width)) == 0{
+					periods := 1
+					//html.Render(os.Stdout, node)
+					for _, a := range node.Attr {
+						if a.Key == "rowspan" {
+							g, _ := strconv.Atoi(a.Val)
+							periods = g / 2
+						}
+					}
+					for i := 0; i < periods; i++ {
+						schedule[period+i][day] = append(schedule[period+i][day], stuff)
+					}
+					fmt.Println(tWidth)
+					if math.Mod(float64(tWidth), float64(schedule[0][0][0].Width)) == 0 {
 						day++
-						if day == 4{
+						if day == 5 {
 							period++
-							day=0
+							day = 0
 						}
 					}
 					node.FirstChild = nil
-					lWidth = tWidth
 				}
 			}
 			for _, a := range node.Attr {
@@ -100,6 +141,7 @@ func parser(scheduleHtml io.ReadCloser) {
 	}
 	parse(body)
 	//html.Render(os.Stdout, body)
-	fmt.Println(schedule)
-
+	table, _ := json.MarshalIndent(schedule, "", "    ")
+	ioutil.WriteFile("scedule.json", table, 0644)
+	fmt.Println(string(table))
 }
