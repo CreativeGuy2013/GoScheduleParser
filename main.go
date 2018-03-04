@@ -141,7 +141,9 @@ func parser(scheduleHtml io.ReadCloser) {
 	}
 	parse(body)
 	//html.Render(os.Stdout, body)
-	table, _ := json.MarshalIndent(schedule, "", "    ")
+	table, _ := json.MarshalIndent(schedule[1:], "", "    ")
+	tableComplete, _ := json.MarshalIndent(schedule, "", "    ")
+
 	ioutil.WriteFile("scedule.json", table, 0644)
-	fmt.Println(string(table))
+	fmt.Println(string(tableComplete))
 }
