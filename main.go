@@ -23,6 +23,39 @@ type class struct {
 	State   string `json:"state"`
 }
 
+/*func (object class) MarshalJSON() ([]byte, error) {
+
+	buffer := bytes.NewBufferString("{")
+	count := 0
+	jsonValue, err := json.Marshal(object.Name)
+	if err != nil {
+		return nil, err
+	}
+	buffer.WriteString(fmt.Sprintf("\"%d\":%s", name, string(jsonValue)))
+	count++
+	if count < length {
+		buffer.WriteString(",")
+	}
+	buffer.WriteString("}")
+	return buffer.Bytes(), nil
+}*/
+func (object class) MarshalJSON() ([]byte, error) {
+	marschall := struct {
+		Name    string `json:"name"`
+		Teacher string `json:"teacher"`
+		Room    string `json:"location"`
+		State   string `json:"state"`
+	}{
+		Name:    object.Name,
+		Teacher: object.Teacher,
+		Room:    object.Room,
+		State:   object.State,
+	}
+
+	json, _ := json.MarshalIndent(marschall, "", "    ")
+	return json, nil
+}
+
 func main() {
 	file, err := os.Open("shitty.html")
 	parser(file)
@@ -130,6 +163,7 @@ func parser(scheduleHtml io.ReadCloser) {
 						schedule[period+i][day] = append(schedule[period+i][day], stuff)
 					}
 					fmt.Println(tWidth)
+					//fmt.Println(schedule)
 					if math.Mod(float64(tWidth), float64(schedule[0][0][0].Width)) == 0 {
 						day++
 						if day == 5 {
@@ -153,9 +187,11 @@ func parser(scheduleHtml io.ReadCloser) {
 	}
 	parse(body)
 	//html.Render(os.Stdout, body)
-	table, _ := json.MarshalIndent(schedule[1:], "", "    ")
-	tableComplete, _ := json.MarshalIndent(schedule, "", "    ")
+	table, err := json.MarshalIndent(schedule, "", "    ")
+	if err != nil {
+		fmt.Println(err.Error())
+	} //tableComplete, _ := json.MarshalIndent(schedule, "", "    ")
 
 	ioutil.WriteFile("scedule.json", table, 0644)
-	fmt.Println(string(tableComplete))
+	fmt.Println(string(table))
 }
