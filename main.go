@@ -8,17 +8,19 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"strings"
 
 	"golang.org/x/net/html"
 )
 
 type class struct {
-	Name    string
-	Teacher string
-	Id      string
-	Room    string
-	Year    string
-	Width   int
+	Name    string `json:"name"`
+	Teacher string `json:"teacher"`
+	Id      string `json:"j"`
+	Room    string `json:"location"`
+	Year    string `json:"j"`
+	Width   int    `json:"j"`
+	State   string `json:"state"`
 }
 
 func main() {
@@ -59,8 +61,8 @@ func parser(scheduleHtml io.ReadCloser) {
 						lWidth += c.Width
 					}
 					tWidth = cWidth + lWidth
-					fmt.Printf("%d-%d\n", day, period)
-					fmt.Println(tWidth)
+					//fmt.Printf("%d-%d\n", day, period)
+					//fmt.Println(tWidth)
 					if period == 0 {
 						if err != nil {
 							fmt.Println("couldnt parse")
@@ -73,8 +75,8 @@ func parser(scheduleHtml io.ReadCloser) {
 							Year:    "none",
 							Width:   cWidth,
 						}
-						fmt.Println(day)
-						fmt.Println(period)
+						//fmt.Println(day)
+						//fmt.Println(period)
 					} else {
 
 						fmt.Println("--------------------------parsing class--------------------------")
@@ -99,9 +101,19 @@ func parser(scheduleHtml io.ReadCloser) {
 								Year:    "none",
 								Width:   cWidth,
 							}
+							fmt.Println(node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.Data)
 							if stuff.Name == "strike" {
+								stuff.State = "canceled"
 								stuff.Name = node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.NextSibling.FirstChild.FirstChild.Data
 								stuff.Teacher = node.FirstChild.FirstChild.LastChild.FirstChild.FirstChild.FirstChild.NextSibling.FirstChild.Data
+							} else {
+								for _, a := range node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.Attr {
+									if a.Key == "color" {
+										if strings.ToUpper(a.Val) == "#FF0000" {
+											stuff.State = "changed"
+										}
+									}
+								}
 							}
 
 						}
