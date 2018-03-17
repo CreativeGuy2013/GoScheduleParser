@@ -23,22 +23,6 @@ type class struct {
 	State   string `json:"state"`
 }
 
-/*func (object class) MarshalJSON() ([]byte, error) {
-
-	buffer := bytes.NewBufferString("{")
-	count := 0
-	jsonValue, err := json.Marshal(object.Name)
-	if err != nil {
-		return nil, err
-	}
-	buffer.WriteString(fmt.Sprintf("\"%d\":%s", name, string(jsonValue)))
-	count++
-	if count < length {
-		buffer.WriteString(",")
-	}
-	buffer.WriteString("}")
-	return buffer.Bytes(), nil
-}*/
 func (object class) MarshalJSON() ([]byte, error) {
 	marschall := struct {
 		Name    string `json:"name"`
@@ -57,14 +41,38 @@ func (object class) MarshalJSON() ([]byte, error) {
 }
 
 func main() {
-	file, err := os.Open("shitty.html")
-	parser(file)
+	var a []chan int
+	f, err := os.Open("./YTP")
+	fis, err := f.Readdir(-1)
 	if err != nil {
-		fmt.Println(err.Error)
+		fmt.Println(err.Error())
+	}
+	i := 0
+	for v, fi := range fis {
+
+		fmt.Println(fi.Name())
+		file, err := os.Open(fmt.Sprintf("./YTP/%s", fi.Name()))
+		c := make(chan int)
+		a = append(a, c)
+		go func(c chan int) {
+
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			defer file.Close()
+			parser(file, file.Name())
+			file.Close()
+			c <- 1
+		}(a[v])
+		i++
+	}
+
+	for cannel := 0; cannel < i; cannel++ {
+		_ = <-a[cannel]
 	}
 }
 
-func parser(scheduleHtml io.ReadCloser) {
+func parser(scheduleHtml io.ReadCloser, fileName string) {
 	var schedule [10][5][]class
 	var (
 		parse                  func(*html.Node)
@@ -77,7 +85,7 @@ func parser(scheduleHtml io.ReadCloser) {
 	period = 0
 	body, err := html.Parse(scheduleHtml)
 	if err != nil {
-		fmt.Println(err.Error)
+		fmt.Println(err.Error())
 	}
 	parse = func(node *html.Node) {
 
@@ -123,18 +131,29 @@ func parser(scheduleHtml io.ReadCloser) {
 						if node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild == nil {
 							fmt.Println("empty stuff")
 						} else {
-							//html.Render(os.Stdout, node.FirstChild.FirstChild.LastChild.LastChild.PrevSibling)
+							html.Render(os.Stdout, node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild)
 							//fmt.Println(node.FirstChild.FirstChild.LastChild.Data)
+							fmt.Println("----------------------------------------------------")
+							fmt.Println(node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.Data)
+							fmt.Println("----------------------------------------------------")
+
+							var (
+								name string
+							)
+							if node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.Data == "\nstart\n" {
+								name = "start Toetsweek"
+							} else {
+								name = node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.NextSibling.FirstChild.Data
+							}
 
 							stuff = class{
-								Name:    node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.NextSibling.FirstChild.Data,
+								Name:    name,
 								Teacher: node.FirstChild.FirstChild.LastChild.FirstChild.FirstChild.FirstChild.Data,
 								Id:      "none",
 								Room:    node.FirstChild.FirstChild.LastChild.LastChild.PrevSibling.FirstChild.FirstChild.Data,
 								Year:    "none",
 								Width:   cWidth,
 							}
-							fmt.Println(node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.Data)
 							if stuff.Name == "strike" {
 								stuff.State = "canceled"
 								stuff.Name = node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.NextSibling.FirstChild.FirstChild.Data
@@ -192,6 +211,6 @@ func parser(scheduleHtml io.ReadCloser) {
 		fmt.Println(err.Error())
 	} //tableComplete, _ := json.MarshalIndent(schedule, "", "    ")
 
-	ioutil.WriteFile("scedule.json", table, 0644)
+	ioutil.WriteFile(fmt.Sprintf("%s.json", fileName), table, 0644)
 	fmt.Println(string(table))
 }
