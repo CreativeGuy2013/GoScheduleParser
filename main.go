@@ -19,7 +19,7 @@ type class struct {
 	Id      string `json:"j"`
 	Room    string `json:"location"`
 	Year    string `json:"j"`
-	Width   int    `json:"j"`
+	Width   int    `json:"width"`
 	State   string `json:"state"`
 }
 
@@ -104,6 +104,7 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 						fmt.Println(c.Width)
 					}
 					tWidth = cWidth + lWidth
+
 					//fmt.Printf("%d-%d\n", day, period)
 					//fmt.Println(tWidth)
 					if period == 0 {
@@ -143,6 +144,14 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 
 						if node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild == nil {
 							fmt.Println("empty stuff")
+							stuff = class{
+								Name:    "none",
+								Teacher: "none",
+								Id:      "none",
+								Room:    "none",
+								Year:    "none",
+								Width:   cWidth,
+							}
 						} else {
 							//html.Render(os.Stdout, node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild)
 							//fmt.Println(node.FirstChild.FirstChild.LastChild.Data)
