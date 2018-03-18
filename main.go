@@ -16,10 +16,10 @@ import (
 type class struct {
 	Name    string `json:"name"`
 	Teacher string `json:"teacher"`
-	Id      string `json:"j"`
+	id      string
 	Room    string `json:"location"`
-	Year    string `json:"j"`
-	Width   int    `json:"width"`
+	year    string
+	width   int
 	State   string `json:"state"`
 }
 
@@ -72,7 +72,7 @@ func main() {
 	}
 }
 
-func parser(scheduleHtml io.ReadCloser, fileName string) {
+func parser(scheduleHML io.ReadCloser, fileName string) {
 	var schedule [10][5][]class
 	var (
 		parse                  func(*html.Node)
@@ -83,7 +83,7 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 	)
 
 	period = 0
-	body, err := html.Parse(scheduleHtml)
+	body, err := html.Parse(scheduleHML)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -99,9 +99,9 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 					lWidth = 0
 					cWidth, err = strconv.Atoi(a.Val)
 					for _, c := range schedule[period][day] {
-						lWidth += c.Width
+						lWidth += c.width
 						fmt.Print("hey")
-						fmt.Println(c.Width)
+						fmt.Println(c.width)
 					}
 					tWidth = cWidth + lWidth
 
@@ -114,18 +114,18 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 						stuff = class{
 							Name:    "day",
 							Teacher: "none",
-							Id:      "none",
+							id:      "none",
 							Room:    "none",
-							Year:    "none",
-							Width:   cWidth,
+							year:    "none",
+							width:   cWidth,
 						}
 						//fmt.Println(day)
 						//fmt.Println(period)
 					} else {
 
 						fmt.Println("--------------------------parsing class--------------------------")
-						fmt.Println(lWidth >= 12 && schedule[0][0][0].Width/lWidth >= 1)
-						for lWidth >= 12 && schedule[0][0][0].Width/lWidth >= 1 {
+						fmt.Println(lWidth >= 12 && schedule[0][0][0].width/lWidth >= 1)
+						for lWidth >= 12 && schedule[0][0][0].width/lWidth >= 1 {
 							day++
 							fmt.Println(day)
 							if day == 5 {
@@ -136,9 +136,9 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 							}
 							lWidth = 0
 							for _, c := range schedule[period][day] {
-								lWidth += c.Width
+								lWidth += c.width
 								fmt.Print("hey")
-								fmt.Println(c.Width)
+								fmt.Println(c.width)
 							}
 						}
 
@@ -147,10 +147,10 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 							stuff = class{
 								Name:    "none",
 								Teacher: "none",
-								Id:      "none",
+								id:      "none",
 								Room:    "none",
-								Year:    "none",
-								Width:   cWidth,
+								year:    "none",
+								width:   cWidth,
 							}
 						} else {
 							//html.Render(os.Stdout, node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild)
@@ -170,10 +170,10 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 							stuff = class{
 								Name:    name,
 								Teacher: node.FirstChild.FirstChild.LastChild.FirstChild.FirstChild.FirstChild.Data,
-								Id:      "none",
+								id:      "none",
 								Room:    node.FirstChild.FirstChild.LastChild.LastChild.PrevSibling.FirstChild.FirstChild.Data,
-								Year:    "none",
-								Width:   cWidth,
+								year:    "none",
+								width:   cWidth,
 							}
 							if stuff.Name == "strike" {
 								stuff.State = "canceled"
@@ -204,7 +204,7 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 					}
 					fmt.Println(tWidth)
 					//fmt.Println(schedule)
-					if math.Mod(float64(tWidth), float64(schedule[0][0][0].Width)) == 0 {
+					if math.Mod(float64(tWidth), float64(schedule[0][0][0].width)) == 0 {
 						day++
 						if day == 5 {
 							period++
