@@ -94,12 +94,14 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 			for _, a := range node.Attr {
 
 				if a.Key == "colspan" {
-					//fmt.Println("correct key")
+					fmt.Println("------------------------------------------------------------------------------------------------------------------------------------------------------------")
 					var stuff class
 					lWidth = 0
 					cWidth, err = strconv.Atoi(a.Val)
 					for _, c := range schedule[period][day] {
 						lWidth += c.Width
+						fmt.Print("hey")
+						fmt.Println(c.Width)
 					}
 					tWidth = cWidth + lWidth
 					//fmt.Printf("%d-%d\n", day, period)
@@ -121,21 +123,30 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 					} else {
 
 						fmt.Println("--------------------------parsing class--------------------------")
-						if lWidth >= 12 && schedule[0][0][0].Width/lWidth >= 1 {
+						fmt.Println(lWidth >= 12 && schedule[0][0][0].Width/lWidth >= 1)
+						for lWidth >= 12 && schedule[0][0][0].Width/lWidth >= 1 {
 							day++
+							fmt.Println(day)
 							if day == 5 {
 								period++
+								fmt.Println(period)
+
 								day = 0
 							}
+							lWidth = 0
+							for _, c := range schedule[period][day] {
+								lWidth += c.Width
+								fmt.Print("hey")
+								fmt.Println(c.Width)
+							}
 						}
+
 						if node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild == nil {
 							fmt.Println("empty stuff")
 						} else {
-							html.Render(os.Stdout, node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild)
+							//html.Render(os.Stdout, node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild)
 							//fmt.Println(node.FirstChild.FirstChild.LastChild.Data)
-							fmt.Println("----------------------------------------------------")
-							fmt.Println(node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.Data)
-							fmt.Println("----------------------------------------------------")
+							//fmt.Println(node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.Data)
 
 							var (
 								name string
@@ -145,6 +156,7 @@ func parser(scheduleHtml io.ReadCloser, fileName string) {
 							} else {
 								name = node.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.FirstChild.NextSibling.FirstChild.Data
 							}
+							fmt.Println(name)
 
 							stuff = class{
 								Name:    name,
